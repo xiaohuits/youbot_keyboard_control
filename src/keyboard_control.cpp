@@ -22,7 +22,7 @@ geometry_msgs::Twist twistSet(const double& lx, const double& ly, const double& 
 int main(int argc, char** argv){
 	ros::init(argc, argv, "keyboard_control");
 	ros::NodeHandle n;
-	ros::Publisher twist_pub = n.advertise<geometry_msgs::Twist>("keypressed",1);
+	ros::Publisher twist_pub = n.advertise<geometry_msgs::Twist>("cmd_vel",1);
 	int c;
 	geometry_msgs::Twist msg;
 
