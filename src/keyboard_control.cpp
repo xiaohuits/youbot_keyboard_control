@@ -49,8 +49,8 @@ int main(int argc, char** argv){
 			case '5': msg = twistSet(0,0,0); break;
 			case '8': msg = twistSet(0.5,0,0); break;
 			case '2': msg = twistSet(-0.5,0,0); break;
-			case '4': msg = twistSet(0.5,0,0); break;
-			case '6': msg = twistSet(-0.5,0,0); break;
+			case '4': msg = twistSet(0,0.5,0); break;
+			case '6': msg = twistSet(0,0.5,0); break;
 			case '7': msg = twistSet(0,0,1); break;
 			case '9': msg = twistSet(0,0,-1); break;
 			default : break;
