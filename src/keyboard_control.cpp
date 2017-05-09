@@ -43,6 +43,14 @@ brics_actuator::JointPositions armSet(std::vector<double>& newPositions) {
 	return msg;
 }
 
+// make sure that the position is in a valid range.
+void armPositionCheck (std::vector<double>& position, const double *min, const double *max) {
+	for (int i=0; i<position.size(); i++) {
+		if (position[i]<min[i]) position[i]=min[i];
+		else if (position[i]>max[i]) position[i]=max[i];
+	}
+}
+
 int main(int argc, char** argv){
 	ros::init(argc, argv, "keyboard_control");
 	ros::NodeHandle n;
@@ -50,9 +58,13 @@ int main(int argc, char** argv){
 	ros::Publisher arm_pub = n.advertise<brics_actuator::JointPositions>("arm_1/arm_controller/position_command",1);
 	int c;
 	geometry_msgs::Twist msg;
-	std::vector<double> initalPosition = {0.11,0.11,-0.11,0.11,0.111};
-	std::vector<double> straightUp = {2.95,1.05,-2.44,1.73,2.95};
+	const std::vector<double> initalPosition = {0.11,0.11,-0.11,0.11,0.111};
+	const std::vector<double> straightUp = {2.95,1.05,-2.44,1.73,2.95};
+	const double armmin[5]={0.0100693,0.0100693,-5.02654,0.022124,0.11062};
+	const double armmax[5]={5.84013,2.61798,-0.015709,3.4291,5.64158};
 
+	std::vector<double> armPosition = {0.11,0.11,0.11,0.11,0.11};
+	const double stepSize = 0.1;
 	static struct termios oldt, newt;
         /*tcgetattr gets the parameters of the current terminal
    	STDIN_FILENO will tell tcgetattr that it should write the settings
@@ -73,16 +85,29 @@ int main(int argc, char** argv){
 	{
 		c = get_char();
 		switch (c){
-			case '5': msg = twistSet(0,0,0); arm_pub.publish(armSet(initalPosition)); break;
-			case '8': msg = twistSet(0.5,0,0); arm_pub.publish(armSet(straightUp)); break;
+			case '5': msg = twistSet(0,0,0); break;
+			case '8': msg = twistSet(0.5,0,0); break;
 			case '2': msg = twistSet(-0.5,0,0); break;
 			case '4': msg = twistSet(0,0.5,0); break;
 			case '6': msg = twistSet(0,-0.5,0); break;
 			case '7': msg = twistSet(0,0,1); break;
 			case '9': msg = twistSet(0,0,-1); break;
+			case 'y': armPosition[0]+=stepSize; break;
+			case 'Y': armPosition[0]-=stepSize; break;
+			case 'u': armPosition[1]+=stepSize; break;
+			case 'U': armPosition[1]-=stepSize; break;
+			case 'i': armPosition[2]+=stepSize; break;
+			case 'I': armPosition[2]-=stepSize; break;
+			case 'o': armPosition[3]+=stepSize; break;
+			case 'O': armPosition[3]-=stepSize; break;
+			case 'p': armPosition[4]+=stepSize; break;
+			case 'P': armPosition[4]-=stepSize; break;
+			case 'r': armPosition = initalPosition; break;
 			default : break;
 		}
-		twist_pub.publish(msg);	
+		twist_pub.publish(msg);
+		armPositionCheck(armPosition,armmin,armmax);	
+		arm_pub.publish(armSet(armPosition));
 	}
 	return 0;
 }
