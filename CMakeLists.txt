@@ -149,7 +149,7 @@ include_directories(
  target_link_libraries(keyboard_control
    ${catkin_LIBRARIES}
  )
-
+add_definitions(-std=c++11)
 #############
 ## Install ##
 #############

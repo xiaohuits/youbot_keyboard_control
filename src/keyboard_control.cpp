@@ -1,6 +1,9 @@
 #include "ros/ros.h"
 //#include "std_msgs/String.h"
 #include "geometry_msgs/Twist.h"
+#include "boost/units/systems/si.hpp"
+#include "boost/units/io.hpp"
+#include "brics_actuator/JointPositions.h"
 #include <iostream>
 #include <stdio.h>
 #include <termios.h>            //termios, TCSANOW, ECHO, ICANON
@@ -19,12 +22,36 @@ geometry_msgs::Twist twistSet(const double& lx, const double& ly, const double& 
 	return msg;
 }
 
+brics_actuator::JointPositions armSet(std::vector<double>& newPositions) {
+	int numberofJoints = 5;
+	brics_actuator::JointPositions msg;
+
+	if(newPositions.size() < numberofJoints) return msg;
+
+	for(int i=0; i<numberofJoints; i++){
+		brics_actuator::JointValue joint;
+		joint.timeStamp = ros::Time::now();
+		joint.value = newPositions[i];
+		joint.unit = boost::units::to_string(boost::units::si::radian);
+
+		std::stringstream jointName;
+		jointName << "arm_joint_" << (i+1);
+		joint.joint_uri = jointName.str();
+
+		msg.positions.push_back(joint);
+	}
+	return msg;
+}
+
 int main(int argc, char** argv){
 	ros::init(argc, argv, "keyboard_control");
 	ros::NodeHandle n;
 	ros::Publisher twist_pub = n.advertise<geometry_msgs::Twist>("cmd_vel",1);
+	ros::Publisher arm_pub = n.advertise<brics_actuator::JointPositions>("arm_1/arm_controller/position_command",1);
 	int c;
 	geometry_msgs::Twist msg;
+	std::vector<double> initalPosition = {0.11,0.11,-0.11,0.11,0.111};
+	std::vector<double> straightUp = {2.95,1.05,-2.44,1.73,2.95};
 
 	static struct termios oldt, newt;
         /*tcgetattr gets the parameters of the current terminal
@@ -46,8 +73,8 @@ int main(int argc, char** argv){
 	{
 		c = get_char();
 		switch (c){
-			case '5': msg = twistSet(0,0,0); break;
-			case '8': msg = twistSet(0.5,0,0); break;
+			case '5': msg = twistSet(0,0,0); arm_pub.publish(armSet(initalPosition)); break;
+			case '8': msg = twistSet(0.5,0,0); arm_pub.publish(armSet(straightUp)); break;
 			case '2': msg = twistSet(-0.5,0,0); break;
 			case '4': msg = twistSet(0,0.5,0); break;
 			case '6': msg = twistSet(0,-0.5,0); break;
